@@ -12,6 +12,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.khue.blescanner.domain.ble.BleConnection
 import com.khue.blescanner.domain.ble.CharacteristicRead
+import com.khue.blescanner.domain.ble.CharacteristicWrite
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,6 +38,9 @@ class AndroidBleConnection(
     private val _characteristicRead = MutableStateFlow(CharacteristicRead())
     override val characteristicRead: StateFlow<CharacteristicRead> = _characteristicRead.asStateFlow()
 
+    private val _characteristicWrite = MutableStateFlow(CharacteristicWrite())
+    override val characteristicWrite: StateFlow<CharacteristicWrite> = _characteristicWrite.asStateFlow()
+
     private var gatt: BluetoothGatt? = null
 
     private val callback = object: BluetoothGattCallback() {
@@ -57,9 +61,7 @@ class AndroidBleConnection(
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
             super.onCharacteristicRead(gatt, characteristic, value, status)
-            if (characteristic.uuid == PASSWORD_CHARACTERISTIC_UUID) {
-                passwordRead.value = String(value)
-            }
+            _characteristicRead.update { CharacteristicRead(characteristic.uuid.toString(), value, status) }
         }
 
         override fun onCharacteristicWrite(
@@ -68,9 +70,7 @@ class AndroidBleConnection(
             status: Int
         ) {
             super.onCharacteristicWrite(gatt, characteristic, status)
-            if (characteristic.uuid == NAME_CHARACTERISTIC_UUID) {
-                successfulNameWrites.update { it + 1 }
-            }
+            _characteristicWrite.update { CharacteristicWrite(characteristic.uuid.toString(), status) }
         }
     }
 

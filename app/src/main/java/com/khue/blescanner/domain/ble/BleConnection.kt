@@ -6,6 +6,7 @@ interface BleConnection {
     val isConnected: StateFlow<Boolean>
     val activeDeviceServices: StateFlow<Map<String, List<String>>>
     val characteristicRead: StateFlow<CharacteristicRead>
+    val characteristicWrite: StateFlow<CharacteristicWrite>
 
     fun connect(deviceAddress: String)
 
